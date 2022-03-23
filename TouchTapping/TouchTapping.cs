@@ -22,6 +22,9 @@ namespace TouchTapping
         [BooleanProperty("Force full alt", "Keys always alternate (still only 2 simultaneous touches are allowed)"), DefaultPropertyValue(false)]
         public bool ForceAlternate { set; get; }
 
+        [BooleanProperty("Disable Key 2", ""), DefaultPropertyValue(false)]
+        public bool DisableK2 { set; get; }
+
         public PipelinePosition Position => PipelinePosition.PreTransform;
 
         public TouchTappingPlugin() : base() { }
@@ -33,7 +36,7 @@ namespace TouchTapping
         {
             if (value is ITouchReport report)
             {
-                foreach (int kn in Enumerable.Range(0, 2))
+                foreach (int kn in Enumerable.Range(0, DisableK2 ? 1 : 2))
                 {
                     if (pressed[kn] == false & !(report.Touches[kn] is null))
                     {
@@ -54,7 +57,7 @@ namespace TouchTapping
         void HandlePress(int kn, Vector2 pos)
         {
             Keybind bind;
-            if (ForceAlternate)
+            if (ForceAlternate && !DisableK2)
             {
                 bind = Binds[fullAltNextBind];
                 fullAltNextBind = fullAltNextBind == 0 ? 1 : 0;
@@ -88,15 +91,26 @@ namespace TouchTapping
                 Log.WriteNotify("Touch Tapping", "K2 is set incorrectly");
                 return;
             }
-            Binds = new Keybind[]
+            if (DisableK2)
             {
+                Binds = new Keybind[]
+                {
+                new Keybind{Key=K1},
+                };
+            }
+            else
+            {
+                Binds = new Keybind[]
+                {
                 new Keybind{Key=K1},
                 new Keybind{Key=K2},
-            };
+                };
+            }
         }
 
         Keybind[] Binds = new Keybind[]
         {
+
             new Keybind{Key="Z"},
             new Keybind{Key="X"},
         };
